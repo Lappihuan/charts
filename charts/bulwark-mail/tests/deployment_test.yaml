@@ -82,6 +82,36 @@ tests:
       - equal:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.path
           value: /api/health
+  - it: supports independent custom paths for all health probes
+    set:
+      probes.startup.path: /webmail/startup
+      probes.liveness.path: /webmail/api/health
+      probes.readiness.path: /webmail/api/ready
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.path
+          value: /webmail/startup
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /webmail/api/health
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /webmail/api/ready
+  - it: omits disabled probes even when custom paths are configured
+    set:
+      probes.startup.enabled: false
+      probes.startup.path: /webmail/api/health
+      probes.liveness.enabled: false
+      probes.liveness.path: /webmail/api/health
+      probes.readiness.enabled: false
+      probes.readiness.path: /webmail/api/ready
+    asserts:
+      - notExists:
+          path: spec.template.spec.containers[0].startupProbe
+      - notExists:
+          path: spec.template.spec.containers[0].livenessProbe
+      - notExists:
+          path: spec.template.spec.containers[0].readinessProbe
   - it: renders declarative JMAP configuration without forcing admin read-only mode
     set:
       config.mode: declarative

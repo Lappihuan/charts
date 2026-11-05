@@ -1,0 +1,9 @@
+# SPDX-License-Identifier: Apache-2.0
+# Custom image probe paths; exposure remains owned by the parent chart.
+probes:
+  startup:
+    path: /webmail/api/health
+  liveness:
+    path: /webmail/api/health
+  readiness:
+    path: /webmail/api/ready

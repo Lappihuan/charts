@@ -38,7 +38,7 @@ The store URL contains the store password, so the chart reads it from a Secret: 
 
 The chart refuses `persistence.enabled` together with more than one replica or autoscaling. One ReadWriteOnce claim cannot follow pods onto other nodes, and with the store nothing needs it. One replica with the store and its old volume stays allowed because that is the upstream migration path: the first start imports `/app/data` into an empty store. The update strategy follows the volume: `Recreate` while a volume is mounted, `RollingUpdate` without one.
 
-The readiness path defaults to `/api/ready` only when the store is enabled. `/api/ready` reports store reachability. Single-instance installs keep `/api/health` unless `probes.readiness.path` is set. Liveness and startup stay on `/api/health` so a store outage removes pods from the Service without restarting them.
+The readiness path defaults to `/api/ready` only when the store is enabled. `/api/ready` reports store reachability. Single-instance installs keep `/api/health` unless `probes.readiness.path` is set. Liveness and startup default to `/api/health` so a store outage removes pods from the Service without restarting them. Their paths can be overridden independently for a custom image; those endpoints should still check process health without depending on the store.
 
 The chart does not install the store. Its lifecycle, persistence, and backup belong to the operator, as with Stalwart; the HelmForge Valkey chart or a managed service can provide it.
 
@@ -76,7 +76,7 @@ The stable session secret protects remembered sessions and encrypted settings. O
 
 ## Observability boundary
 
-Startup, readiness, and liveness probes call `/api/health` on the configured application listener; with the shared store, readiness calls `/api/ready`, which also fails while the store is unreachable. They prove that the Bulwark process responds, not that external JMAP, browser CORS, OAuth, DNS, certificates, or mail delivery work. Bulwark does not expose a chart-supported metrics endpoint; operators should use logs, Kubernetes conditions, and external synthetic login/JMAP checks for production monitoring.
+Startup, readiness, and liveness probes default to `/api/health` on the configured application listener; with the shared store, readiness defaults to `/api/ready`, which also fails while the store is unreachable. All three probe paths can be overridden for custom images. They prove that the Bulwark process responds, not that external JMAP, browser CORS, OAuth, DNS, certificates, or mail delivery work. Bulwark does not expose a chart-supported metrics endpoint; operators should use logs, Kubernetes conditions, and external synthetic login/JMAP checks for production monitoring.
 
 ## Known gaps and limitations
 

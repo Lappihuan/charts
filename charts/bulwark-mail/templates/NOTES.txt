@@ -180,14 +180,14 @@ Check Service endpoints:
 
   kubectl -n {{ .Release.Namespace }} get endpointslice -l kubernetes.io/service-name={{ include "bulwark-mail.fullname" . }}
 
-Check the health contract from the pod:
+Check the configured liveness endpoint from the pod:
 
-  kubectl -n {{ .Release.Namespace }} exec deployment/{{ include "bulwark-mail.fullname" . }} -- wget -qO- http://127.0.0.1:{{ .Values.containerPorts.http }}/api/health
+  kubectl -n {{ .Release.Namespace }} exec deployment/{{ include "bulwark-mail.fullname" . }} -- wget -qO- http://127.0.0.1:{{ .Values.containerPorts.http }}{{ .Values.probes.liveness.path | default "/api/health" }}
 {{- if .Values.sharedStore.enabled }}
 
-Check readiness and the shared store from the pod (expects "store":"redis"):
+Check the configured readiness endpoint from the pod (the default expects "store":"redis"):
 
-  kubectl -n {{ .Release.Namespace }} exec deployment/{{ include "bulwark-mail.fullname" . }} -- wget -qO- http://127.0.0.1:{{ .Values.containerPorts.http }}/api/ready
+  kubectl -n {{ .Release.Namespace }} exec deployment/{{ include "bulwark-mail.fullname" . }} -- wget -qO- http://127.0.0.1:{{ .Values.containerPorts.http }}{{ include "bulwark-mail.readinessPath" . }}
 {{- end }}
 
 {{- if eq .Values.config.mode "declarative" }}
